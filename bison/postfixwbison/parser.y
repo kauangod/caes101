@@ -25,14 +25,14 @@ int symb[26];
 %token MINUS
 %token DIVIDE
 %token TIMES
-%token LEFT
-%token RIGHT
+/* %token LEFT */
+/* %token RIGHT */
 %token DONE
 %token <valueInt> VARIABLE
 %token EQUALS
 
 /* declare non-terminals */
-%type <value> stmt expr term factor
+%type <value> stmt expr factor
 
 /* give us more detailed errors */
 %define parse.error verbose
@@ -50,17 +50,19 @@ stmt: atrib DONE {}
 atrib: VARIABLE EQUALS expr { symb[$1] = $3;}
 
 /* an expression uses + or - or neither */
-expr: expr PLUS term {$$ = $1 + $3;}
-    | expr MINUS term {$$ = $1 - $3;}
-    | term {$$ = $1;}
-
-/* an expression uses * or / or neither */
-term: term TIMES factor {$$ = $1 * $3;}
-    | term DIVIDE factor {$$ = $1 / $3;}
+expr: expr factor PLUS {$$ = $1 + $2;}
+    | expr factor MINUS {$$ = $1 - $2;}
+    | expr factor TIMES {$$ = $1 * $2;}
+    | expr factor DIVIDE {$$ = $1 / $2;}
     | factor {$$ = $1;}
 
+/* an expression uses * or / or neither */
+/* term: term factor TIMES {$$ = $1 * $2;}
+    | term factor DIVIDE {$$ = $1 / $2;}
+    | factor {$$ = $1;} */
+
 factor: VAL {$$ = $1;}
-      | LEFT expr RIGHT {$$ = $2;}
+      /* | LEFT expr RIGHT {$$ = $2;} */
       | VARIABLE { $$ = symb[$1];}
 %%
 

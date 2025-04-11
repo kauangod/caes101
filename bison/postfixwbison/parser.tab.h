@@ -59,11 +59,9 @@ extern int yydebug;
     MINUS = 260,                   /* MINUS  */
     DIVIDE = 261,                  /* DIVIDE  */
     TIMES = 262,                   /* TIMES  */
-    LEFT = 263,                    /* LEFT  */
-    RIGHT = 264,                   /* RIGHT  */
-    DONE = 265,                    /* DONE  */
-    VARIABLE = 266,                /* VARIABLE  */
-    EQUALS = 267                   /* EQUALS  */
+    DONE = 263,                    /* DONE  */
+    VARIABLE = 264,                /* VARIABLE  */
+    EQUALS = 265                   /* EQUALS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -72,12 +70,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 16 "parser.y"
+#line 17 "parser.y"
 
   double value;
   int valueInt;
 
-#line 81 "parser.tab.h"
+#line 79 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -90,6 +88,6 @@ extern YYSTYPE yylval;
 
 
 int yyparse (void);
-int yylex(void);
+
 
 #endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */

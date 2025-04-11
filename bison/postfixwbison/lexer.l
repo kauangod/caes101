@@ -14,8 +14,6 @@
 "-"             {return MINUS;}
 "/"             {return DIVIDE;}
 "*"             {return TIMES;}
-"("             {return LEFT;}
-")"             {return RIGHT;}
 [a-z]           {yylval.valueInt=(int)(yytext[0])- 97; return VARIABLE; }
 "="             {return EQUALS;}
 [0-9]+          {yylval.value = atof(yytext); return VAL;}
