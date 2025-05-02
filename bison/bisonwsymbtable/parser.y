@@ -47,7 +47,7 @@ Symbol* create_table(unsigned int size){
   return temp_table;
 }
 
-Symbol* table = create_table(TABLE_SIZE);
+Symbol* table; 
 
 unsigned int hash(const char* key) {
     unsigned int hash_value = 0;
@@ -123,6 +123,7 @@ void free_table() {
 /* declare type possibilities of symbols */
 %union {
   double value;
+  int boolean;
   char variable[11];
   char string[1];
 }
@@ -147,51 +148,78 @@ void free_table() {
 %token <string> CARACTERE
 %token WRITE
 %token READ
+%token RETURN
 
 /* declare non-terminals */
 %type <value> expr_aritmetica termo fator 
 %type <variable> ID
-%type <unsigned int> expr_logica
+%type <boolean> expr_logica
 
 %define parse.error verbose
 
+%nonassoc THEN
+%nonassoc ELSE
+%left OR
+%left AND
+%right '!' 
 %% 
-programa: declaracoes comandos DONE
+programa: declaracoes comandos 
 
-declaracoes: declaracao
-           | declaracoes declaracao
+declaracoes: declaracao 
+           | declaracoes declaracao 
+           | RETURN '0' { return 0; }
 
 declaracao: INT ID DONE { insert($2, INT_TYPE); }
           | FLOAT ID DONE { insert($2, FLOAT_TYPE); }
           | BOOL ID DONE { insert($2, BOOL_TYPE); }
           | CHAR ID DONE { insert($2, CHAR_TYPE); }
 
-comandos: comando
-        | comandos comando
+comandos: comando 
+        | comandos comando 
 
-comando: comando_if
-       | atribs
-       | comando_read
-       | comando_write
+comando: comando_if DONE
+       | atribs DONE
+       | comando_read DONE
+       | comando_write DONE
 
 comando_read: READ '(' ID ')' { 
                 int index = hash($3); 
                 switch(table[index].type){
                     case INT_TYPE:
-                       scanf("%d", &table[index].value_int);
+                       int aux_int;
+                       printf("Digite um inteiro:");
+                       printf("\n");
+                       scanf("%d", &aux_int);
+                       while(getchar() != '\n');
+                       table[index].value_int = aux_int;
                     break;
                     case FLOAT_TYPE:
-                        scanf("%f", &table[index].value_float);
+                        float aux_float;
+                        printf("Digite um real:");
+                        printf("\n");
+                        scanf("%f", &aux_float);
+                        while(getchar() != '\n');
+                        table[index].value_float = aux_float;
                     break;
                     case BOOL_TYPE:
-                        scanf("%u", &table[index].value_bool);
+                        unsigned int aux_bool;
+                        printf("Digite um booleano:");
+                        printf("\n");
+                        scanf("%u", &aux_bool);
+                        while(getchar() != '\n');
+                        table[index].value_bool = aux_bool;
                     break;
                     case CHAR_TYPE:
-                        scanf("%c", &table[index].value_char);
+                        char aux_char;
+                        printf("Digite um caractere:");
+                        printf("\n");
+                        scanf("%c", &aux_char);
+                        while(getchar() != '\n');
+                        table[index].value_char = aux_char; 
                     break;
                     default:
                       break;
-                }      
+                }
               }  
 
 comando_write: WRITE '(' ID ')' { 
@@ -212,25 +240,65 @@ comando_write: WRITE '(' ID ')' {
                       default:
                         break;
                   }
+                  printf("\n");
                }
-             | WRITE '(' NUM ')' { printf("%.2lf", $3); }
-             | WRITE '(' CARACTERE ')' { printf("%c", $3[0]); }
+             | WRITE '(' NUM ')' { printf("%.2lf", $3); printf("\n"); }
+             | WRITE '(' CARACTERE ')' { printf("%c", $3[0]); printf("\n"); }
 
 atribs: atrib
-      | atribs atrib
-
-comando_if: IF '(' expr_logica ')' THEN '{' atribs '}'
+  
+comando_if: IF '(' expr_logica ')' THEN '{' atribs '}' 
           | IF '(' expr_logica ')' THEN '{' atribs '}' ELSE '{' atribs '}'
           
-expr_logica: expr_aritmetica '>' expr_aritmetica
-           | expr_aritmetica '<' expr_aritmetica
-           | expr_aritmetica GREATER expr_aritmetica
-           | expr_aritmetica LESS expr_aritmetica
-           | expr_aritmetica EQUALS expr_aritmetica
-           | expr_aritmetica DIFFERENT expr_aritmetica
-           | expr_logica OR expr_logica 
-           | expr_logica AND expr_logica
-           | '!' expr_logica
+expr_logica: expr_aritmetica '>' expr_aritmetica { 
+                if ($1 > $3)
+                  $$ = 1;
+                else
+                  $$ = 0;
+              }
+           | expr_aritmetica '<' expr_aritmetica {
+                if ($1 < $3)
+                  $$ = 1;
+                else 
+                  $$ = 0;
+              }
+           | expr_aritmetica GREATER expr_aritmetica {
+                if ($1 >= $3)
+                  $$ = 1;
+                else
+                  $$ = 0;
+           }
+           | expr_aritmetica LESS expr_aritmetica {
+              if ($1 <= $3)
+                $$ = 1;
+              else
+                $$ = 0;
+           }
+           | expr_aritmetica EQUALS expr_aritmetica {
+              if ($1 == $3)
+                $$ = 1;
+              else
+                $$ = 0;
+           }
+           | expr_aritmetica DIFFERENT expr_aritmetica {
+              if ($1 != $3)
+                $$ = 1;
+              else
+                $$ = 0;
+           }
+           | expr_logica OR expr_logica {
+              if ($1 == 1 || $3 == 1)
+                $$ = 1;
+              else 
+                $$ = 0;
+           } 
+           | expr_logica AND expr_logica {
+              if ($1 == 1 && $3 == 1)
+                $$ = 1;
+              else
+                $$ = 0;
+           }
+           | '!' expr_logica { $$ = !$2; }
            
 
 atrib: ID '=' expr_aritmetica { int index = hash($1); 
@@ -258,20 +326,23 @@ atrib: ID '=' expr_aritmetica { int index = hash($1);
 expr_aritmetica: expr_aritmetica '+' termo { $$ = $1 + $3; }
                | expr_aritmetica '-' termo { $$ = $1 - $3; }
                | termo
+ 
 
 termo: termo '*' fator { $$ = $1 * $3; }
      | termo '/' fator { $$ = $1 / $3; }
      | fator 
 
-fator: NUM 
+fator: NUM
      | '(' expr_aritmetica ')' { $$ = $2; } 
      | ID { unsigned int index = hash ($1); 
-          if(table[index].type == INT_TYPE || table[index].type == FLOAT_TYPE) 
-              { $$ = table[index].value; }
+          if(table[index].type == INT_TYPE) 
+              $$ = table[index].value_int; 
+          else if (table[index].type == FLOAT_TYPE)
+              $$ = table[index].value_float;
           else 
               { printf("Erro de semantica, tentativa de operacao aritmetica com variavel nao numerica!"); }
           }
-
+  
 ID: VARIABLE
 
 %%
@@ -285,8 +356,8 @@ void yyerror(const char* str) {
 }
 
 int main() {
+  table = create_table(TABLE_SIZE);
   yyparse();
-  printf("The answer is %lf\n", result);
   return 0;
 }
 
